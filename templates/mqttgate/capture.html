@@ -5,29 +5,30 @@
 {% endblock %}
 
 {% block body %}
-<div class="container-fluid" style="padding-top: 10rem;">
+<div class="container-fluid">
     <div class="container text-center">
         <div class="row">
             <div class="col-12">
-                <h5>Nomor Antrian Anda adalah</h5>
+                <h3>Nomor Antrian Anda adalah</h3>
                 <br>
-                <p>------------------------</p>
+                <h3>------------------------</h3>
                 <br>
-                <p><strong>{{ lay }}</strong></p>
+                <h3><strong>{{ lay }}</strong></h3>
                 <br>
-                <p>------------------------</p>
+                <h3>------------------------</h3>
                 <br>
-                <p><strong>{{ ks }} {{ queue_number }}</strong></p>
+                <h3><strong>{{ ks }} {{ queue_number }}</strong></h3>
                 <br>
-                <p>------------------------</p>
+                <h3>------------------------</h3>
                 <br>
-                <p>Mohon sabar menunggu</p>
+                <h3>Mohon sabar menunggu</h3>
                 <br>
-                <p>{{ jam }}</p>
+                <h3>{{ jam }}</h3>
                 <br>
                 <img src="{{ url_for('static', filename=qr_code_path) }}" alt="QR Code" style="width: 200px;">
+                <br>
             </div>
-            <div class="col-12">
+            <div class="col-12 py-3">
                 <a class="btn btn-primary" href="/" role="button">Kembali ke menu utama</a>
             </div>
         </div>

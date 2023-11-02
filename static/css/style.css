@@ -4,9 +4,8 @@ body {
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    height: 1920px;
 }
 
 .hide {display:none;}
 
-#video  {display:block;width:360px;height:360px;margin:0 auto;rotate:0deg; position:relative;top:-0vh ;border:5px solid rgb(0, 17, 255) }
+#video  {display:block;width:360px;height:340px;margin:0 auto;rotate:0deg; position:relative;top:-0vh ;border:3px solid rgb(0, 17, 255) }
