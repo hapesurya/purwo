@@ -10,16 +10,22 @@
         <div class="row">
             <div class="col-12">
                 <h5>Nomor Antrian Anda adalah</h5>
+                <br>
                 <p>------------------------</p>
+                <br>
                 <p><strong>{{ lay }}</strong></p>
+                <br>
                 <p>------------------------</p>
+                <br>
                 <p><strong>{{ ks }} {{ queue_number }}</strong></p>
-                
+                <br>
                 <p>------------------------</p>
+                <br>
                 <p>Mohon sabar menunggu</p>
+                <br>
                 <p>{{ jam }}</p>
+                <br>
                 <img src="{{ url_for('static', filename=qr_code_path) }}" alt="QR Code" style="width: 200px;">
-                <p>data = {{ data }}</p>
             </div>
             <div class="col-12">
                 <a class="btn btn-primary" href="/" role="button">Kembali ke menu utama</a>

@@ -122,11 +122,9 @@ def capture():
         # Set align
         printer.set(align='center')
         printer.text('SATPAS POLRES PURWOREJO\n')
-        printer.text('\n')
         printer.set(align='center')
         printer.text('------------------------\n')
         printer.set(align='center')
-        printer.text('\n')
         printer.text(lay)
         printer.text('\n')
         printer.set(align='center')
@@ -141,18 +139,16 @@ def capture():
         printer.set(align='center')
         printer.text('\n')
         printer.text('------------------------\n')
-        printer.text('\n')
         printer.set(align='center')
         printer.text('Mohon sabar menunggu\n')
         printer.set(align='center')
-        printer.text('\n')
         printer.text(jam)
         printer.text('\n')
         printer.set(align='center')
 
-        # Cut the paper
-        printer.cut()
-    return render_template('mqttgate/capture.html', qr_code_path=qr_code_path, ks=ks, lay=lay, queue_number=session['queue_number_' + service_key], jam=jam)
+        # # Cut the paper
+        # printer.cut()
+    return render_template('mqttgate/capture.html', qr_code_path=qr_code_path,data=base64, ks=ks, lay=lay, queue_number=session['queue_number_' + service_key], jam=jam)
 
 if __name__ == "__main__":
     app.run(host='localhost', port=5000,  debug=True)
