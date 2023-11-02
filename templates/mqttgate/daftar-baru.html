@@ -1,0 +1,55 @@
+{% extends 'base_mqttgate.html' %}
+
+{% block head %}
+<title>Daftar Baru</title>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid" style="padding-top: 10rem;">
+    <div class="container text-center">
+        <div class="row">
+            <div class="col-12">
+                <h1>Layanan Daftar Baru</h1>
+                <h4>Total Antrian Saat Ini <span class="badge bg-secondary">{{ session }}</span> Orang</h4>
+                <p>Untuk mencetak nomor antrian, pastikan wajah Anda berada dalam bingkai foto</p>
+            </div>
+        </div>
+        <!-- video stream -->
+        <div class="row">
+            <div class="col-12">
+                <video class="img-fluid" id="video" autoplay></video>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-12">
+                <h6>
+                    Pastikan wajah anda berada dalam bingkai
+                </h6>
+            </div>
+        </div>
+        <!-- form untuk mengirimkan hasil gambar ke flask --> 
+        <div class="row mt-4">
+            <div class="col-12">
+                <form id="form-daftar" action="/capture" method="POST">
+                    <button id="photo">Ambil Photo</button>
+                    <input type="hidden" name="ks" value="A">
+                    <input type="hidden" name="lay" value="Daftar SIM Baru">
+                    <input type="hidden" name="service_key" value="daftar-baru">
+                    <div id="dataurl-container" class="hide">
+                        <canvas id="canvas"></canvas>
+                        <div id="dataurl-header">Foto Anda</div>
+                        <textarea name="img" id="dataurl" readonly></textarea>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Button Back To Home -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <a class="btn btn-danger" href="/" role="button">Kembali Ke Menu Utama</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+    

@@ -1,0 +1,13 @@
+Pillow>=2.0
+PyYAML
+appdirs
+argcomplete
+argparse
+future
+pyserial
+python-barcode<1,>=0.9.1
+pyusb>=1.0.0
+qrcode>=4.0
+setuptools
+six
+viivakoodi>=0.8
