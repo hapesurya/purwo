@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, session, url_for, redirect
 import paho.mqtt.client as mqtt
 import datetime
+import time
 import qrcode
 import os
 from escpos.printer import Usb
+import json
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
@@ -85,14 +87,14 @@ def capture():
         jam = now.strftime("%Y-%m-%d %H-%M-%S")
 
         # MQTT Client Setup
-        mqtt_client = mqtt.Client()
+        # mqtt_client = mqtt.Client()
         
-        # Connect MQTT
-        mqtt_client.connect(host='broker.mqtt-dashboard.com', port=1883)
-        # Send timestamp as a message to the MQTT broker with the topic '/service'
-        mqtt_client.publish(topic=str(service_key), payload=str(base64), qos=0)
-        # Disconnect from MQTT broker
-        mqtt_client.disconnect()
+        # # Connect MQTT
+        # mqtt_client.connect(host='broker.mqtt-dashboard.com', port=1883)
+        # # Send timestamp as a message to the MQTT broker with the topic '/service'
+        # mqtt_client.publish(topic=str(service_key), payload=str(base64), qos=0)
+        # # Disconnect from MQTT broker
+        # mqtt_client.disconnect()
 
         # Generate a QR code based on the image_data_url now
         qr = qrcode.QRCode(
@@ -153,6 +155,71 @@ def capture():
         # Cut the paper
         printer.cut()
     return render_template('mqttgate/capture.html', qr_code_path=qr_code_path, ks=ks, lay=lay, queue_number=session['queue_number_' + service_key], jam=jam)
+
+##===========================================================
+# sending data (image (base64 jpeg format) to broker
+# other MQTT which subscribe to this TOPIC will receive 
+# the data image, so it can recognize when he access the door
+##===========================================================
+
+## the topic:
+## mqtt/face/<ID-FACE_RCOGINZER>
+FACE_COMMAND_TOPIC = "mqtt/face/1962829"
+
+def publish(data, pick):
+
+    msg_id    = round(time.time()*1000)
+    tiket_id  = "QR%s" % msg_id       # untuk personId
+    image     = data
+    tanggal   = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    tgl       = datetime.now().strftime("%Y-%m-%d")
+    jam       = "23:59:59"
+
+    msg = {"msg":
+      {
+        "messageId":"{}".format(msg_id),
+        "operator":"EditPerson",
+        "info":
+        {
+          "personId":"{}".format(tiket_id),
+          "customId":"{}".format(msg_id),
+          "name": "{}",
+          "nation":1,
+          "gender":0,
+          "birthday":"{}".format(tanggal),
+          "address":"Purworejo",
+          "idCard":"421381199504030001",
+          "tempCardType":0,
+          "EffectNumber":3,
+          "cardValidBegin":"{}".format(tanggal),
+          "cardValidEnd":"{} {}".format(tgl, jam),
+          "telnum1":"18888888888",
+          "Native": "Polres Purworejo, Jawa Tengah",
+          "cardType2":0,
+          "cardNum2":"",
+          "notes":"{}",
+          "personType":0,
+          "cardType":0,
+          "dwidentity":0,
+          "pic": "{}".format(image)
+        }
+      }
+    }
+    #(msg_id,tiket_id,msg_id,tanggal,antrian,image) #.format(mid=msg_id, tid=tiket_id, tno=antrian, tgl=tanggal, img=image)
+    msg = json.dumps(msg, indent = 4)
+    print(msg)
+
+    #msg = msg.format(tid=tiket_id, msg_id=msg_id, tno=antrian, tgl=tanggal, img=image)
+    
+    ## instance
+    client = mqtt.Client("P1") #create new instance 
+    #connect to broker
+    broker_address = "localhost"
+    broker_port = 1883
+    client.connect(broker_address, port=broker_port)
+    
+    ## send to face-recog 
+    client.publish(FACE_COMMAND_TOPIC, msg)
 
 if __name__ == "__main__":
     app.run(host='localhost', port=5000,  debug=True)
