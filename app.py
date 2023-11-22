@@ -89,14 +89,14 @@ def capture():
         # MQTT Client Setup
         mqtt_client = mqtt.Client("P1")
 
-        FACE_COMMAND_TOPIC = "mqtt/face/basic"
+        FACE_COMMAND_TOPIC = "mqtt/face/1962821"
         
         msg_id    = round(time.time()*1000)
         tiket_id  = "QR%s" % msg_id       # untuk personId
         image     = base64
         tanggal   = now.strftime("%Y-%m-%d %H:%M:%S")
         tgl       = now.strftime("%Y-%m-%d")
-        hangus       = "23:59:59"
+        hangus    = "23:59:59"
 
         msg = {"msg":
         {
@@ -136,7 +136,9 @@ def capture():
         # Connect MQTT
         mqtt_client.connect(host='localhost', port=1883)
         # Send timestamp as a message to the MQTT broker with the topic 'SN FR nya'
-        mqtt_client.publish(topic=FACE_COMMAND_TOPIC, payload=msg, qos=0)
+        mqtt_client.publish(topic='mqtt/face/1962821', payload=msg, qos=0)
+        # mqtt_client.publish(topic='mqtt/face/1962821/Ack', payload=msg, qos=0)
+
         # Disconnect from MQTT broker
         # mqtt_client.disconnect()
 
@@ -206,9 +208,9 @@ def capture():
 # the data image, so it can recognize when he access the door
 ##===========================================================
 
-## the topic:
-## mqtt/face/<ID-FACE_RCOGINZER>
-# FACE_COMMAND_TOPIC = "mqtt/face/1962829"
+# the topic:
+# mqtt/face/<ID-FACE_RCOGINZER>
+# FACE_COMMAND_TOPIC = "mqtt/face/1962821"
 
 # def publish(data, pick):
 
@@ -227,7 +229,7 @@ def capture():
 #         {
 #           "personId":"{}".format(tiket_id),
 #           "customId":"{}".format(msg_id),
-#           "name": "{}",
+#           "name": "{}".format(msg_id),
 #           "nation":1,
 #           "gender":0,
 #           "birthday":"{}".format(tanggal),
