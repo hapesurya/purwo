@@ -30,3 +30,6 @@ htmlcov/
 # Dependency directories
 venv/
 env/
+
+# StaticImage
+static/photos/
