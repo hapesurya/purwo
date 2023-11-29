@@ -1,0 +1,12 @@
+{
+"messageId":"1701163244477",
+"operator": "EditPerson-Ack",
+"code":"464",
+"info": {
+"facesluiceId":"1962821",
+"personId":"0",
+"customId":"1701163244477",
+"result":"fail",
+"detail":"Get pic Person Feature err, please change a pic"
+}
+}

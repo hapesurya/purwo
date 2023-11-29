@@ -1,0 +1,8 @@
+{
+"operator":"voiceplay", 
+    "messageId":"1701098574",
+    "info": {
+        "UsrType":"1",
+        "voicetype":"welcome.wav"
+        }
+}

@@ -1,0 +1,10 @@
+{
+"messageId":"1701163448486",
+"operator": "EditPerson-Ack",
+"code":"200",
+"info": {
+"facesluiceId":"1962821",
+"personId":"13",
+"customId":"1701163448486",
+"result":"ok"}
+}

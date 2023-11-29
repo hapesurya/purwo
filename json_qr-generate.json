@@ -1,0 +1,12 @@
+{
+        "messageId": "1700824267990",
+        "operator": "ShowQRCode",
+        "info": {
+            "ImageType": "3",
+            "AbsX": "10",
+            "AbsY": "10",
+            "ImageW": "200",
+            "ImageH": "200",
+            "QRCodeData": "1700841028"
+        }
+    }
