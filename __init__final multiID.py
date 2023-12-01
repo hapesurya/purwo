@@ -152,6 +152,10 @@ def capture():
         lay = request.form['lay']
         # Get image data from form
         image_data_url = request.form['img']
+        # Data base64 diperkecil dulu
+        # base64_edit = (image_data_url[-55:-5])
+        # kita akan jadikan kode service (ks) dan antrian sebagai base64
+        # base64_dummy = f'{ks}{antrian}'
 
         msg_id = round(time.time()*1000)
         tiket_id = "QR%s" % msg_id       # untuk personId
@@ -174,10 +178,25 @@ def capture():
         qr_image.save(qr_image_path)
         
         # EXPERIMENT JIKA QRCODE MAU DITAMPILKAN DI LAYAR
+        # Parsing gambar QRCode ke URL Queue
         qr_code_path = f'./photos/{datehour_now}_qr_code.png'
 
+        # buffered = BytesIO()
+        # qr_image.save(buffered, format="PNG")
+        # qr_image_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+        #MQTT MULTI CLIENTS
+        mqtt_clients=[]
+        nclients=11
+        mqtt.Client.connected_flag=False
+        #create clients
+        for i  in range(nclients):
+            cname="P"+str(i)
+            clients= mqtt.Client(cname)
+            mqtt_clients.append(clients)
+
         # MQTT Client Setup
-        mqtt_client = mqtt.Client("P1")
+        # mqtt_client = mqtt.Client("P1")
 
         msg = {"msg":
         {
@@ -210,13 +229,16 @@ def capture():
         }
         }
         msg = json.dumps(msg, indent = 4)
+        # print(msg) #uncomment for testing
+        # print(FACE_COMMAND_TOPIC) #uncomment for testing
 
-        # Connect MQTT
-        mqtt_client.username_pw_set(username='admin', password='admin')
-        mqtt_client.connect(host='localhost', port=1883)
-        # Send timestamp as a message to the MQTT broker with the topic 'SN FR nya'
-        for face_id in face_ids:
-            mqtt_client.publish(topic='mqtt/face/{}'.format(face_id), payload=msg, qos=0)
+        for mqtt_client in mqtt_clients:
+            mqtt_client.username_pw_set(username='admin', password='admin')
+            mqtt_client.connect(host='localhost', port=1883)
+            mqtt_client.loop_start()
+            # Send timestamp as a message to the MQTT broker with the topic 'SN FR nya'
+            for face_id in face_ids:
+                mqtt_client.publish(topic='mqtt/face/{}'.format(face_id), payload=msg, qos=0)
     
         # Setting Printer
         printkarcis(lay, ks, antrian, msg_id)

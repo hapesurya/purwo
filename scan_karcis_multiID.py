@@ -5,11 +5,17 @@ import time
 # MQTT configuration
 broker_host = "localhost"
 broker_port = 1883
-client_id = "P1"
+mqtt_clients=[]
+nclients=11
 username = "admin"
 password = "admin"
 topic_template = "mqtt/face/{}/QRCode"
 msg_id = round(time.time()*1000)
+
+#create clients
+for i in range(nclients):
+    cname="P"+str(i)
+    mqtt_clients.append(cname)
 
 #Daftar FaceID nya
 face_ids = [
@@ -37,7 +43,7 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     print(f"Received message: {msg.payload} on topic: {msg.topic}")
     
-    # Extract ID from the received topic mqtt/face/ID/QRCode
+    # Extract ID from the received topic
     topic_parts = msg.topic.split("/")
     if len(topic_parts) == 4:
         face_id = topic_parts[2]
@@ -79,9 +85,10 @@ def on_message(client, userdata, msg):
         publisher.disconnect()
 
 # Set up MQTT client
-client = mqtt.Client(client_id)
-client.username_pw_set(username=username, password=password)
-client.on_connect = on_connect
-client.on_message = on_message
-client.connect(broker_host, broker_port)
-client.loop_forever()
+for mqtt_client in mqtt_clients:
+    mqtt_client_id = mqtt.Client(mqtt_client)
+    mqtt_client_id.username_pw_set(username=username, password=password)
+    mqtt_client_id.on_connect = on_connect
+    mqtt_client_id.on_message = on_message
+    mqtt_client_id.connect(broker_host, broker_port)
+    mqtt_client_id.loop_forever()

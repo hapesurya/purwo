@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, session, url_for, redirect
 import paho.mqtt.client as mqtt
+import paho.mqtt.publish as publish
+from datetime import datetime, timezone
 import datetime
 import time
 import qrcode
@@ -7,6 +9,7 @@ import os
 from escpos.printer import Usb
 import json
 from flask_sqlalchemy import SQLAlchemy
+from apscheduler.schedulers.background import BackgroundScheduler
 import base64
 from io import BytesIO
 
@@ -18,6 +21,19 @@ db = SQLAlchemy(app)
 now = datetime.datetime.now()
 tanggaljam_now = now.strftime("%d-%m-%Y %H:%M:%S")
 datehour_now = now.strftime("%Y-%m-%d %H:%M:%S")
+
+# Set the path to the photos directory
+photos_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'photos')
+
+def delete_photos_job():
+    # Delete all file contents in the /static/photos directory
+    for filename in os.listdir(photos_directory):
+        file_path = os.path.join(photos_directory, filename)
+        try:
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+        except Exception as e:
+            print(f"Error deleting file {file_path}: {e}")
 
 class VisitorDB(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -223,5 +239,37 @@ def capture():
 
     return render_template('mqttgate/capture.html', qr_code_path=qr_code_path, ks=ks, lay=lay, queue_number=session['queue_number_' + service_key], jam=tanggaljam_now)
 
+msg_deleteallperson = {
+    "messageId":"ID:devicehost-637046811507388956:23952:65:48",
+    "operator":"DeleteAllPerson",
+    "info":
+    {
+        "facesluiceId":"{}",
+        "deleteall":"1",
+        }
+    }
+
+msg_deleteallperson = json.dumps(msg_deleteallperson, indent = 4)
+
+def mqtt_publisher_job():
+    # Run MQTT publisher function for each ID
+    for client_id in face_ids:
+        topic = f"mqtt/face/{client_id}"
+        message = msg_deleteallperson
+        publish.single(topic=topic, payload=message, hostname='localhost', port=1883, auth={'username': 'admin', 'password': 'admin'})
+
 if __name__ == "__main__":
+    # Create scheduler
+    scheduler = BackgroundScheduler()
+
+    # Schedule the delete photos job to run every day at 5 PM UTC +7 (Jakarta)
+    scheduler.add_job(delete_photos_job, 'cron', hour=(17-7), minute=5, second=0, timezone=timezone.utc)
+
+    # Schedule the MQTT publisher job to run every day at 5 PM UTC +7 (Jakarta)
+    scheduler.add_job(mqtt_publisher_job, 'cron', hour=(17-7), minute=0, second=0, timezone=timezone.utc)
+
+    # Start the scheduler
+    scheduler.start()
+
+    # Run the Flask app
     app.run(host='localhost', port=5000,  debug=True)

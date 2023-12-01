@@ -1,0 +1,38 @@
+{% extends 'base_mqttgate.html' %}
+
+{% block head %}
+<title>Gagal Foto</title>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="container text-center">
+        <div class="row mt-4">
+            <div class="col-12">
+                <h3><strong>Foto Anda Gagal diambil</strong></h3>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-12">
+                <h3>{{ error_message }}</h3>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-12">
+                <h3>Lakukan foto ulang saat pengambilan tiket antrian</h3>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-6 text-center offset-3">
+                <h2><strong>Tekan tombol di bawah ini</strong></h2>
+            </div>
+        </div>
+        <!-- Button Kembali -->
+        <div class="row mt-4">
+            <div class="col-12 py-3">
+                <a class="btn btn-primary" href="/" role="button">Kembali ke menu utama</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

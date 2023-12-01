@@ -1,0 +1,9 @@
+{
+"messageId":"ID:devicehost-637046811507388956:23952:65:48",
+"operator":"DeleteAllPerson",
+ "info":
+ {
+ "facesluiceId":"{}",
+ "deleteall":"1",
+ }
+ }

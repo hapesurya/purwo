@@ -7,6 +7,7 @@ import os
 from escpos.printer import Usb
 import json
 from flask_sqlalchemy import SQLAlchemy
+from flask import flash
 import base64
 from io import BytesIO
 
@@ -18,6 +19,51 @@ db = SQLAlchemy(app)
 now = datetime.datetime.now()
 tanggaljam_now = now.strftime("%d-%m-%Y %H:%M:%S")
 datehour_now = now.strftime("%Y-%m-%d %H:%M:%S")
+
+# MQTT configuration
+mqtt_broker_address = "localhost"
+mqtt_broker_port = 1883
+mqtt_topic_Ack = "mqtt/face/{}/Ack"
+
+#Daftar FaceID nya
+face_ids = [
+    "1962821", 
+    "1962822", 
+    "1962823", 
+    "1962824", 
+    "1962825", 
+    "1962826", 
+    "1962827", 
+    "1962828", 
+    "1962829", 
+    "1962830", 
+    "1962831"]
+
+def on_connect(client, userdata, flags, rc):
+    print(f"Connected to MQTT broker with result code {rc}")
+    # Subscribe to the Ack topics for all clients
+    for client_id in face_ids:
+        client.subscribe(mqtt_topic_Ack.format(client_id))
+
+def on_message(client, userdata, msg):
+    print(f"Received message: {msg.payload} on topic: {msg.topic}")    
+    # Check if the message contains a JSON payload
+    try:
+        payload_json = json.loads(msg.payload)
+        code_value = payload_json.get("code")
+        print(code_value)
+        if code_value is not None and code_value != "200":
+            # Set a session variable to indicate an issue with the response
+            session["upgrade_response_issue"] = True
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON payload: {e}")
+
+# Set up MQTT client
+mqtt_client = mqtt.Client()
+mqtt_client.on_connect = on_connect
+mqtt_client.on_message = on_message
+mqtt_client.connect(host=mqtt_broker_address, port=mqtt_broker_port)
+mqtt_client.loop_forever()
 
 class VisitorDB(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -91,7 +137,12 @@ def index():
 @app.route('/daftar-baru')
 def daftarbaru():
     service_key = 'daftar-baru'
-    reset_queue_number(service_key) 
+    reset_queue_number(service_key)
+
+    # Check if there was an issue with the response in the session
+    if session.pop("upgrade_response_issue", False):
+        return render_template('mqttgate/error.html', error_message="Foto Gagal Diambil. Ulangi Pengambilan Foto Sesuai Petunjuk.")
+    
     if request.method == 'POST':
         session['queue_number_' + service_key] += 1
         return redirect(url_for('capture', service_key=service_key))
@@ -101,6 +152,11 @@ def daftarbaru():
 def perpanjangan():
     service_key = 'perpanjangan'
     reset_queue_number(service_key)
+
+    # Check if there was an issue with the response in the session
+    if session.pop("upgrade_response_issue", False):
+        return render_template('mqttgate/error.html', error_message="Foto Gagal Diambil. Ulangi Pengambilan Foto Sesuai Petunjuk.")
+    
     if request.method == 'POST':
         session['queue_number_' + service_key] += 1
         return redirect(url_for('capture', service_key=service_key, session=session['queue_number_perpanjangan']))
@@ -110,6 +166,11 @@ def perpanjangan():
 def ujianulang():
     service_key = 'ujian-ulang'
     reset_queue_number(service_key)
+
+    # Check if there was an issue with the response in the session
+    if session.pop("upgrade_response_issue", True):
+        return render_template('mqttgate/error.html', error_message="Foto Gagal Diambil. Ulangi Pengambilan Foto Sesuai Petunjuk.")
+
     if request.method == 'POST':
         session['queue_number_' + service_key] += 1
         return redirect(url_for('capture', service_key=service_key, session=session['queue_number_ujian-ulang']))
@@ -119,24 +180,15 @@ def ujianulang():
 def peningkatan():
     service_key = 'peningkatan'
     reset_queue_number(service_key)
-    if request.method == 'POST':
-        session['queue_number_' + service_key] += 1
-        return redirect(url_for('capture', service_key=service_key, session=session['queue_number_peningkatan']))
-    return render_template('mqttgate/peningkatan.html', session=session['queue_number_peningkatan'])
 
-#Daftar FaceID nya
-face_ids = [
-    "1962821", 
-    "1962822", 
-    "1962823", 
-    "1962824", 
-    "1962825", 
-    "1962826", 
-    "1962827", 
-    "1962828", 
-    "1962829", 
-    "1962830", 
-    "1962831"]
+    if request.method == 'POST':
+    # Check if there was an issue with the response in the session
+        if session.pop("upgrade_response_issue", True):
+            return render_template('mqttgate/peningkatan.html', session=session['queue_number_peningkatan'], error_message="Foto Gagal Diambil. Ulangi Pengambilan Foto Sesuai Petunjuk.")
+        else:
+            session['queue_number_' + service_key] += 1
+            return redirect(url_for('capture', service_key=service_key, session=session['queue_number_peningkatan']))
+    return render_template('mqttgate/peningkatan.html', session=session['queue_number_peningkatan'])
 
 @app.route('/capture', methods=['GET', 'POST'])
 def capture():
@@ -213,13 +265,13 @@ def capture():
 
         # Connect MQTT
         mqtt_client.username_pw_set(username='admin', password='admin')
-        mqtt_client.connect(host='localhost', port=1883)
+        mqtt_client.connect(host=mqtt_broker_address, port=mqtt_broker_port)
         # Send timestamp as a message to the MQTT broker with the topic 'SN FR nya'
         for face_id in face_ids:
             mqtt_client.publish(topic='mqtt/face/{}'.format(face_id), payload=msg, qos=0)
     
         # Setting Printer
-        printkarcis(lay, ks, antrian, msg_id)
+        #printkarcis(lay, ks, antrian, msg_id)
 
     return render_template('mqttgate/capture.html', qr_code_path=qr_code_path, ks=ks, lay=lay, queue_number=session['queue_number_' + service_key], jam=tanggaljam_now)
 
