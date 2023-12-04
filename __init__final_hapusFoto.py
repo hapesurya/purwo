@@ -272,10 +272,10 @@ if __name__ == "__main__":
     scheduler = BackgroundScheduler()
 
     # Schedule the delete photos job to run every day at 5 PM UTC +7 (Jakarta)
-    scheduler.add_job(delete_photos_job, 'cron', hour=(22-7), minute=0, second=0, timezone=timezone.utc)
+    scheduler.add_job(delete_photos_job, 'cron', hour=(17-7), minute=0, second=0, timezone=timezone.utc)
 
     # Schedule the MQTT publisher job to run every day at 5 PM UTC +7 (Jakarta)
-    scheduler.add_job(mqtt_publisher_job, 'cron', hour=(22-7), minute=0, second=0, timezone=timezone.utc)
+    scheduler.add_job(mqtt_publisher_job, 'cron', hour=(17-7), minute=0, second=0, timezone=timezone.utc)
 
     # Start the scheduler
     scheduler.start()
