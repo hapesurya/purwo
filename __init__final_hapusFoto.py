@@ -35,11 +35,19 @@ def delete_photos_job():
         except Exception as e:
             print(f"Error deleting file {file_path}: {e}")
 
+'''
+id
+tanggal-jam
+nomor-antrian
+qrcode (kodenya aja)
+message_id mqtt
+'''
 class VisitorDB(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    tanggal = db.Column(db.String(100), nullable=False)
-    layanan = db.Column(db.String(100), nullable=False)
-    antrian = db.Column(db.String(100), nullable=False)
+    tanggaljam = db.Column(db.String(100), nullable=False)
+    noantrian = db.Column(db.String(100), nullable=False)
+    qrcode = db.Column(db.String(100), nullable=False)
+    message_id = db.Column(db.String(100), nullable=False)
 
     def __repr__(self):
         return '<Visitor %r>' % self.id
@@ -233,6 +241,7 @@ def capture():
         # Send timestamp as a message to the MQTT broker with the topic 'SN FR nya'
         for face_id in face_ids:
             mqtt_client.publish(topic='mqtt/face/{}'.format(face_id), payload=msg, qos=0)
+            time.sleep(1)
     
         # Setting Printer
         printkarcis(lay, ks, antrian, msg_id)
@@ -263,13 +272,13 @@ if __name__ == "__main__":
     scheduler = BackgroundScheduler()
 
     # Schedule the delete photos job to run every day at 5 PM UTC +7 (Jakarta)
-    scheduler.add_job(delete_photos_job, 'cron', hour=(17-7), minute=5, second=0, timezone=timezone.utc)
+    scheduler.add_job(delete_photos_job, 'cron', hour=(22-7), minute=0, second=0, timezone=timezone.utc)
 
     # Schedule the MQTT publisher job to run every day at 5 PM UTC +7 (Jakarta)
-    scheduler.add_job(mqtt_publisher_job, 'cron', hour=(17-7), minute=0, second=0, timezone=timezone.utc)
+    scheduler.add_job(mqtt_publisher_job, 'cron', hour=(22-7), minute=0, second=0, timezone=timezone.utc)
 
     # Start the scheduler
     scheduler.start()
 
     # Run the Flask app
-    app.run(host='localhost', port=5000,  debug=True)
+    app.run(host='localhost', port=5000,  debug=False)

@@ -5,63 +5,61 @@
 {% endblock %}
 
 {% block body %}
-<div class="container-fluid p-5">
-    <div class="container text-center">
-        <div class="row mt-4">
-            <div class="col-12">
-                <h1>Layanan Ujian Ulang</h1>
-            </div>
+<div class="container text-center my-5">
+    <div class="row mt-4">
+        <div class="col-12">
+            <h1>Layanan Ujian Ulang</h1>
         </div>
-        <div class="row mt-4">
-            <div class="col-12">
-                <h3>Total Antrian Saat Ini <span class="badge bg-secondary">{{ session }}</span> Orang</h3>
-            </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-12">
+            <h3>Total Antrian Saat Ini <span class="badge bg-secondary">{{ session }}</span> Orang</h3>
         </div>
-        <div class="row mt-4">
-            <div class="col-12">
-                <h4>Untuk mencetak nomor antrian, pastikan wajah Anda berada dalam bingkai foto</h4>
-            </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4>Untuk mencetak nomor antrian, pastikan wajah Anda berada dalam bingkai foto</h4>
         </div>
-        <!-- video stream -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <video class="img-fluid" id="video" autoplay></video>
-            </div>
+    </div>
+    <!-- video stream -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <video class="img-fluid" id="video" autoplay></video>
         </div>
-        <!-- h6 -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <h6>
-                    Pastikan wajah anda berada dalam bingkai
-                </h6>
-            </div>
+    </div>
+    <!-- h6 -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <h6>
+                Pastikan wajah anda berada dalam bingkai
+            </h6>
         </div>
-        <!-- form untuk mengirimkan hasil gambar ke flask --> 
-        <div class="row mt-4">
-            <div class="col-12">
-                <form id="form-daftar" action="/capture" method="POST">
-                    <button id="photo" class="btn btn-warning btn-lg mt-5 mb-5">Ambil Photo</button>
-                    <input type="hidden" name="ks" value="C">
-                    <input type="hidden" name="lay" value="Ujian Ulang">
-                    <input type="hidden" name="service_key" value="ujian-ulang">
-                    <div id="dataurl-container" class="hide">
-                        <canvas id="canvas"></canvas>
-                        <div id="dataurl-header">Foto Anda</div>
-                        <textarea name="img" id="dataurl" readonly></textarea>
-                    </div>
-                </form>
-                <!-- Alert message ketika foto tidak tepat -->
-                <div id="alert-container" style="display:none; margin-top: 10px;">
-                    <div id="alert-message" class="alert alert-danger" role="alert">
-                    </div>
+    </div>
+    <!-- form untuk mengirimkan hasil gambar ke flask --> 
+    <div class="row mt-4">
+        <div class="col-12">
+            <form id="form-daftar" action="/capture" method="POST">
+                <button id="photo" class="btn btn-warning btn-lg mt-5 mb-5">Ambil Photo</button>
+                <input type="hidden" name="ks" value="C">
+                <input type="hidden" name="lay" value="Ujian Ulang">
+                <input type="hidden" name="service_key" value="ujian-ulang">
+                <div id="dataurl-container" class="hide">
+                    <canvas id="canvas"></canvas>
+                    <div id="dataurl-header">Foto Anda</div>
+                    <textarea name="img" id="dataurl" readonly></textarea>
+                </div>
+            </form>
+            <!-- Alert message ketika foto tidak tepat -->
+            <div id="alert-container" style="display:none; margin-top: 10px;">
+                <div id="alert-message" class="alert alert-danger" role="alert">
                 </div>
             </div>
         </div>
-        <!-- Button Back To Home -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <a class="btn btn-danger" href="/" role="button">Kembali Ke Menu Utama</a>
-            </div>
+    </div>
+    <!-- Button Back To Home -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <a class="btn btn-danger" href="/" role="button">Kembali Ke Menu Utama</a>
         </div>
     </div>
 </div>
