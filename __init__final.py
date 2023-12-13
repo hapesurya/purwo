@@ -28,7 +28,52 @@ class VisitorDB(db.Model):
     def __repr__(self):
         return '<Visitor %r>' % self.id
 
+def mqttclientsetup(msg_id, tiket_id, ks, antrian, date, datehour_now, hangus, image_data_url):
+    # MQTT Client Setup
+        mqtt_client = mqtt.Client("P1")
+
+        msg = {"msg":
+        {
+            "messageId":"{}".format(msg_id),
+            "operator":"EditPerson",
+            "info":
+            {
+            "personId":"{}".format(tiket_id),
+            "customId":"{}".format(msg_id),
+            "name": "{}{}".format(ks, antrian),
+            "nation":1,
+            "gender":0,
+            "birthday":"{}".format(date),
+            "address":"Purworejo",
+            "idCard":"421381199504030001",
+            "tempCardType":0,
+            "EffectNumber":3,
+            "cardValidBegin":"{}".format(datehour_now),
+            "cardValidEnd":"{} {}".format(date, hangus),
+            "telnum1":"18888888888",
+            "Native": "Polres Purworejo, Jawa Tengah",
+            "cardType2":0,
+            "cardNum2":"",
+            "notes":"{}",
+            "personType":0,
+            "cardType":0,
+            "dwidentity":0,
+            "pic": "{}".format(image_data_url) #base64 murni hasil foto
+            }
+        }
+        }
+        msg = json.dumps(msg, indent = 4)
+
+        # Connect MQTT
+        mqtt_client.username_pw_set(username='admin', password='admin')
+        mqtt_client.connect(host='localhost', port=1883)
+        # Send timestamp as a message to the MQTT broker with the topic 'SN FR nya'
+        for face_id in face_ids:
+            mqtt_client.publish(topic='mqtt/face/{}'.format(face_id), payload=msg, qos=0)
+
 def printkarcis(lay, ks, antrian, msg_id):
+    back = "https://localhost:5000/"
+    try:
     # Setting Printer
         # Create a new instance of the printer object
         printer = Usb(0x4b43, 0x3830, 0, 0x81, 0x03)
@@ -67,6 +112,9 @@ def printkarcis(lay, ks, antrian, msg_id):
 
         # Cut the paper
         printer.cut()
+
+    except Exception as e:
+        print(f"<h1>Cek Kondisi Printer</h1><br><h2>Sebabnya bisa jadi:</h2><br><h3>Kertas habis, Kertas salah pasang</h3><br><br><br><h1><a href:'{back}'>Kembali ke Halaman Awal</a></h1>")
         
 #1. Reset queue number and date when the day changes
 #2. Get ks from URL query parameter
@@ -149,7 +197,7 @@ def capture():
         antrian=session['queue_number_' + service_key]
         # Get ks from form
         ks = request.form['ks']
-        lay = request.form['lay']
+        layanan = request.form['lay']
         # Get image data from form
         image_data_url = request.form['img']
 
@@ -177,51 +225,12 @@ def capture():
         qr_code_path = f'./photos/{datehour_now}_qr_code.png'
 
         # MQTT Client Setup
-        mqtt_client = mqtt.Client("P1")
-
-        msg = {"msg":
-        {
-            "messageId":"{}".format(msg_id),
-            "operator":"EditPerson",
-            "info":
-            {
-            "personId":"{}".format(tiket_id),
-            "customId":"{}".format(msg_id),
-            "name": "{}{}".format(ks, antrian),
-            "nation":1,
-            "gender":0,
-            "birthday":"{}".format(date),
-            "address":"Purworejo",
-            "idCard":"421381199504030001",
-            "tempCardType":0,
-            "EffectNumber":3,
-            "cardValidBegin":"{}".format(datehour_now),
-            "cardValidEnd":"{} {}".format(date, hangus),
-            "telnum1":"18888888888",
-            "Native": "Polres Purworejo, Jawa Tengah",
-            "cardType2":0,
-            "cardNum2":"",
-            "notes":"{}",
-            "personType":0,
-            "cardType":0,
-            "dwidentity":0,
-            "pic": "{}".format(image_data_url) #base64 murni hasil foto
-            }
-        }
-        }
-        msg = json.dumps(msg, indent = 4)
-
-        # Connect MQTT
-        mqtt_client.username_pw_set(username='admin', password='admin')
-        mqtt_client.connect(host='localhost', port=1883)
-        # Send timestamp as a message to the MQTT broker with the topic 'SN FR nya'
-        for face_id in face_ids:
-            mqtt_client.publish(topic='mqtt/face/{}'.format(face_id), payload=msg, qos=0)
+        mqttclientsetup(msg_id, tiket_id, ks, antrian, date, datehour_now, hangus, image_data_url)
     
         # Setting Printer
-        printkarcis(lay, ks, antrian, msg_id)
+        #printkarcis(lay, ks, antrian, msg_id)
 
-    return render_template('mqttgate/capture.html', qr_code_path=qr_code_path, ks=ks, lay=lay, queue_number=session['queue_number_' + service_key], jam=tanggaljam_now)
+    return render_template('mqttgate/capture.html', qr_code_path=qr_code_path, ks=ks, layanan=layanan, antrian=antrian, jam=tanggaljam_now)
 
 if __name__ == "__main__":
     app.run(host='localhost', port=5000,  debug=True)
