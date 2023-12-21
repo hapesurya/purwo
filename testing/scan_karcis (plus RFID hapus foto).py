@@ -10,7 +10,7 @@ client_id = "P1"
 username = "admin"
 password = "admin"
 topic_subsQR = "mqtt/face/{}/QRCode"
-topic_subsCARD = "mqtt/face/{}/IDCard"
+topic_subsCARD = "mqtt/face/{}/Card"
 topic_pubFR = "mqtt/face/{}"
 msg_id = round(time.time()*1000)
 
@@ -82,7 +82,7 @@ IDCARDS = [
 ]
 
 def delete_data_task():
-    # Schedule this task at 5 P.M. UTC+7 to publish "DELETE DATA" message for each face ID
+    # Schedule this task at 3 P.M. UTC+7 to publish "DELETE DATA" message for each face ID
     for face_id in face_ids:
         # Create an MQTT publisher
         publisher = mqtt.Client()
@@ -115,8 +115,8 @@ def on_connect(client, userdata, flags, rc):
             client.subscribe(topic_subsQR.format(face_id))
             client.subscribe(topic_subsCARD.format(face_id))
         
-        # Schedule the "DELETE DATA" task at 5 P.M. UTC+7
-        schedule.every().day.at("12:00").do(delete_data_task)  # Assuming the server is in UTC, change the time accordingly
+        # Schedule the "DELETE DATA" task at 3 P.M. UTC+7
+        schedule.every().day.at("10:00").do(delete_data_task)  # Assuming the server is in UTC, change the time accordingly
     else:
         print(f"Failed to connect to MQTT broker with result code {rc}")
 

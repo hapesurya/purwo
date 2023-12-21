@@ -7,12 +7,12 @@ import os
 from escpos.printer import Usb
 import json
 from flask_sqlalchemy import SQLAlchemy
-import base64
-from io import BytesIO
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
+#pakai mariadb
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:NewPass123@localhost/visitor_db'
+
 db = SQLAlchemy(app)
 
 now = datetime.datetime.now()
@@ -28,94 +28,47 @@ class VisitorDB(db.Model):
     def __repr__(self):
         return '<Visitor %r>' % self.id
 
-def mqttclientsetup(msg_id, tiket_id, ks, antrian, date, datehour_now, hangus, image_data_url):
+def mqttclientsetup(msg_id, tiket_id, ks, antrian, date, datehour_now, hangus, image_data_url, face_id):
     # MQTT Client Setup
         mqtt_client = mqtt.Client("P1")
 
         msg = {"msg":
-        {
-            "messageId":"{}".format(msg_id),
-            "operator":"EditPerson",
-            "info":
-            {
-            "personId":"{}".format(tiket_id),
-            "customId":"{}".format(msg_id),
-            "name": "{}{}".format(ks, antrian),
-            "nation":1,
-            "gender":0,
-            "birthday":"{}".format(date),
-            "address":"Purworejo",
-            "idCard":"421381199504030001",
-            "tempCardType":0,
-            "EffectNumber":3,
-            "cardValidBegin":"{}".format(datehour_now),
-            "cardValidEnd":"{} {}".format(date, hangus),
-            "telnum1":"18888888888",
-            "Native": "Polres Purworejo, Jawa Tengah",
-            "cardType2":0,
-            "cardNum2":"",
-            "notes":"{}",
-            "personType":0,
-            "cardType":0,
-            "dwidentity":0,
-            "pic": "{}".format(image_data_url) #base64 murni hasil foto
+               {
+                   "messageId":"{}".format(msg_id),
+                   "operator":"EditPerson",
+                   "info":
+                   {
+                       "personId":"{}".format(tiket_id),
+                       "customId":"{}".format(msg_id),
+                       "name": "{}{}".format(ks, antrian),
+                       "nation":1,
+                       "gender":0,
+                       "birthday":"{}".format(date),
+                       "address":"Purworejo",
+                       "idCard":"421381199504030001",
+                       "tempCardType":0,
+                       "EffectNumber":3,
+                       "cardValidBegin":"{}".format(datehour_now),
+                       "cardValidEnd":"{} {}".format(date, hangus),"telnum1":"18888888888",
+                       "Native": "Polres Purworejo, Jawa Tengah",
+                       "cardType2":0,
+                       "cardNum2":"",
+                       "notes":"{}",
+                       "personType":0,
+                       "cardType":0,
+                       "dwidentity":0,
+                       "pic": "{}".format(image_data_url) #base64 murni hasil foto
+                    }
+                }
             }
-        }
-        }
         msg = json.dumps(msg, indent = 4)
 
         # Connect MQTT
         mqtt_client.username_pw_set(username='admin', password='admin')
         mqtt_client.connect(host='localhost', port=1883)
         # Send timestamp as a message to the MQTT broker with the topic 'SN FR nya'
-        for face_id in face_ids:
-            mqtt_client.publish(topic='mqtt/face/{}'.format(face_id), payload=msg, qos=0)
+        mqtt_client.publish(topic='mqtt/face/{}'.format(face_id), payload=msg, qos=0)
 
-def printkarcis(lay, ks, antrian, msg_id):
-    back = "https://localhost:5000/"
-    try:
-    # Setting Printer
-        # Create a new instance of the printer object
-        printer = Usb(0x4b43, 0x3830, 0, 0x81, 0x03)
-        
-        # Mulai Print Text Tiketnya
-        # Set align
-        printer.set(align='center')
-        printer.text('SATPAS POLRES PURWOREJO\n')
-        printer.text('\n')
-        printer.set(align='center')
-        printer.text('------------------------\n')
-        printer.set(align='center')
-        printer.text('\n')
-        printer.text(lay)
-        printer.text('\n')
-        printer.set(align='center')
-        printer.text((ks) + str(antrian))
-        printer.text('\n')
-        printer.set(align='center')
-        printer.text('------------------------\n')
-        printer.set(align='center')
-        printer.text('\n')
-        #kode QR Code nya
-        printer.qr(msg_id, size=14)
-        printer.set(align='center')
-        printer.text('\n')
-        printer.text('------------------------\n')
-        printer.text('\n')
-        printer.set(align='center')
-        printer.text('Mohon sabar menunggu\n')
-        printer.set(align='center')
-        printer.text('\n')
-        printer.text(tanggaljam_now)
-        printer.text('\n')
-        printer.set(align='center')
-
-        # Cut the paper
-        printer.cut()
-
-    except Exception as e:
-        print(f"<h1>Cek Kondisi Printer</h1><br><h2>Sebabnya bisa jadi:</h2><br><h3>Kertas habis, Kertas salah pasang</h3><br><br><br><h1><a href:'{back}'>Kembali ke Halaman Awal</a></h1>")
-        
 #1. Reset queue number and date when the day changes
 #2. Get ks from URL query parameter
 #3. Get queue number from session
@@ -141,7 +94,6 @@ def daftarbaru():
     service_key = 'daftar-baru'
     reset_queue_number(service_key) 
     if request.method == 'POST':
-        session['queue_number_' + service_key] += 1
         return redirect(url_for('capture', service_key=service_key))
     return render_template('mqttgate/daftar-baru.html', session=session['queue_number_daftar-baru'])
 
@@ -150,7 +102,6 @@ def perpanjangan():
     service_key = 'perpanjangan'
     reset_queue_number(service_key)
     if request.method == 'POST':
-        session['queue_number_' + service_key] += 1
         return redirect(url_for('capture', service_key=service_key, session=session['queue_number_perpanjangan']))
     return render_template('mqttgate/perpanjangan.html', session=session['queue_number_perpanjangan'])
 
@@ -159,7 +110,6 @@ def ujianulang():
     service_key = 'ujian-ulang'
     reset_queue_number(service_key)
     if request.method == 'POST':
-        session['queue_number_' + service_key] += 1
         return redirect(url_for('capture', service_key=service_key, session=session['queue_number_ujian-ulang']))
     return render_template('mqttgate/ujian-ulang.html', session=session['queue_number_ujian-ulang'])
 
@@ -168,13 +118,12 @@ def peningkatan():
     service_key = 'peningkatan'
     reset_queue_number(service_key)
     if request.method == 'POST':
-        session['queue_number_' + service_key] += 1
         return redirect(url_for('capture', service_key=service_key, session=session['queue_number_peningkatan']))
     return render_template('mqttgate/peningkatan.html', session=session['queue_number_peningkatan'])
 
 #Daftar FaceID nya
 face_ids = [
-    "1962821", 
+    "1962821",
     "1962822", 
     "1962823", 
     "1962824", 
@@ -183,52 +132,104 @@ face_ids = [
     "1962827", 
     "1962828", 
     "1962829", 
-    "1962830", 
-    "1962831"]
+    "1962857", 
+    "1962858", 
+    "1992021"]
 
 @app.route('/capture', methods=['GET', 'POST'])
 def capture():
     if request.method == 'POST':
-        # nomor antrian
-        service_key = request.form['service_key']
-        reset_queue_number(service_key)
-        session['queue_number_' + service_key] += 1
-        # Antrian ke
-        antrian=session['queue_number_' + service_key]
-        # Get ks from form
-        ks = request.form['ks']
-        layanan = request.form['lay']
-        # Get image data from form
-        image_data_url = request.form['img']
+        try:
+            printer = Usb(0x4b43, 0x3830, 0, 0x81, 0x03)
+            # Check if the printer is connected successfully
+            printer_status = printer.device
+            if printer_status is None:
+                error_message = f"Ada Error: {str(e)}. Silahkan cek kondisi printer (kertas habis atau posisi kertas salah) dan tekan tombol dibawah"
+                redirect_button = f'<button onclick="window.location.href=\'http://localhost:5000/\';">Go to Home</button>'
+                return f'<h1>{error_message}</h1>{redirect_button}'
+            else:
+                # nomor antrian
+                service_key = request.form['service_key']
+                reset_queue_number(service_key)
+                session['queue_number_' + service_key] += 1
+                # Antrian ke
+                antrian=session['queue_number_' + service_key]
+                # Get ks from form
+                ks = request.form['ks']
+                layanan = request.form['lay']
+                # Get image data from form
+                image_data_url = request.form['img']
 
-        msg_id = round(time.time()*1000)
-        tiket_id = "QR%s" % msg_id       # untuk personId
-        date = now.strftime("%Y-%m-%d")
-        hangus = "23:59:59"
+                msg_id = round(time.time()*1000)
+                tiket_id = "QR%s" % msg_id       # untuk personId
+                date = now.strftime("%Y-%m-%d")
+                hangus = "23:59:59"
 
-        # SETTING QRCODE
-        qr = qrcode.QRCode(
-            version=2,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
-        )
+                # SETTING QRCODE
+                qr = qrcode.QRCode(
+                    version=2,
+                    error_correction=qrcode.constants.ERROR_CORRECT_L,
+                    box_size=10,
+                    border=4,
+                )
 
-        qr.add_data(str(msg_id))
-        qr.make(fit=True)
+                qr.add_data(str(msg_id))
+                qr.make(fit=True)
 
-        qr_image_path = f'./static/photos/{datehour_now}_qr_code.png'
-        qr_image = qr.make_image(fill_color="black", back_color="white")
-        qr_image.save(qr_image_path)
+                qr_image_path = f'./static/photos/{datehour_now}_qr_code.png'
+                qr_image = qr.make_image(fill_color="black", back_color="white")
+                qr_image.save(qr_image_path)
+                
+                # EXPERIMENT JIKA QRCODE MAU DITAMPILKAN DI LAYAR
+                qr_code_path = f'./photos/{datehour_now}_qr_code.png'
+
+                # MQTT Client Setup
+                for face_id in face_ids:
+                    mqttclientsetup(msg_id, tiket_id, ks, antrian, date, datehour_now, hangus, image_data_url, face_id)
         
-        # EXPERIMENT JIKA QRCODE MAU DITAMPILKAN DI LAYAR
-        qr_code_path = f'./photos/{datehour_now}_qr_code.png'
+                # Mulai Print Text Tiketnya
+                printer.set(align='center')
+                printer.text('SATPAS POLRES PURWOREJO\n')
+                printer.text('\n')
+                printer.set(align='center')
+                printer.text('------------------------\n')
+                printer.set(align='center')
+                printer.text('\n')
+                printer.text(lay)
+                printer.text('\n')
+                printer.set(align='center')
+                printer.text((ks) + str(antrian))
+                printer.text('\n')
+                printer.set(align='center')
+                printer.text('------------------------\n')
+                printer.set(align='center')
+                printer.text('\n')
+                #kode QR Code nya
+                printer.qr(msg_id, size=14)
+                printer.set(align='center')
+                printer.text('\n')
+                printer.text('------------------------\n')
+                printer.text('\n')
+                printer.set(align='center')
+                printer.text('Mohon sabar menunggu\n')
+                printer.set(align='center')
+                printer.text('\n')
+                printer.text(tanggaljam_now)
+                printer.text('\n')
+                printer.set(align='center')
 
-        # MQTT Client Setup
-        mqttclientsetup(msg_id, tiket_id, ks, antrian, date, datehour_now, hangus, image_data_url)
-    
-        # Setting Printer
-        #printkarcis(lay, ks, antrian, msg_id)
+                # Cut the paper
+                printer.cut()
+
+                #Simpan Di Database
+                new_content = VisitorDB(tanggal=date, layanan=ks, antrian=antrian)
+                
+                db.session.add(new_content)
+                db.session.commit()
+        except Exception as e:
+                error_message = f"Ada Error: {str(e)}. Silahkan cek kondisi printer (kertas habis atau posisi kertas salah) dan tekan tombol dibawah"
+                redirect_button = f'<button onclick="window.location.href=\'http://localhost:5000/\';">Go to Home</button>'
+                return f'<h1>{error_message}</h1>{redirect_button}'
 
     return render_template('mqttgate/capture.html', qr_code_path=qr_code_path, ks=ks, layanan=layanan, antrian=antrian, jam=tanggaljam_now)
 

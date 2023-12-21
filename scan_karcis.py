@@ -22,8 +22,9 @@ face_ids = [
     "1962827", 
     "1962828", 
     "1962829", 
-    "1962830", 
-    "1962831"]
+    "1962857",
+    "1962858",
+    "1992021"]
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -37,7 +38,7 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     print(f"Received message: {msg.payload} on topic: {msg.topic}")
     
-    # Extract ID from the received topic mqtt/face/ID/QRCode
+    # Extract ID from the received topic
     topic_parts = msg.topic.split("/")
     if len(topic_parts) == 4:
         face_id = topic_parts[2]
